@@ -1,8 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from chats.users import add_user
 
-import xmpp
 
 router = APIRouter()
 
@@ -15,8 +14,9 @@ class User(BaseModel):
     password: str
 
 
+
 @router.get("/users/login")
-async def login_user(username:str, passw:str):
+async def login_user(username:str = Query(...), passw:str = Query(...)):
     return {
         "username":username,
         "status":200

@@ -8,3 +8,5 @@ paramiko
 slixmpp
 asyncio
 waitress
+asgiref
+uvicorn
