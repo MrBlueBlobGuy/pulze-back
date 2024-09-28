@@ -8,16 +8,26 @@ router = APIRouter()
 # In-memory storage for users (you can replace this with a database later)
 
 class User(BaseModel):
-    id: int
     name: str
-    email: str
+    phonenumber: str
     password: str
 
 
 
-@router.get("/users/login")
-async def login_user(username:str = Query(...), passw:str = Query(...)):
+@router.post("/users/signup")
+async def signup_user(user: User):
     return {
-        "username":username,
+        "user":user,
         "status":200
+    } if add_user(user.name, user.password) else {
+        "status":400
+    }
+
+@router.post("/users/login")
+async def login_user(user: User):
+    return {
+        "username":user.name,
+        "status":200
+    } if add_user(user.name, user.password) else {
+        "status":400
     }
