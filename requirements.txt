@@ -7,3 +7,4 @@ mysql-connector-python
 paramiko
 slixmpp
 asyncio
+waitress

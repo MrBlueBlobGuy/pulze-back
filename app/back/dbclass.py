@@ -36,3 +36,10 @@ class dbmanager:
     def create_entry_hash(self, field, object):
         self.cursor.execute('SELECT * FROM {} WHERE {} = %s'.format(object, field), (field,))
         return self.cursor.fetchone()
+    
+    def update(self, qstring:str, qdata:tuple=()):
+        self.cursor.execute(qstring, qdata)
+        self.connector.commit()
+        return self.cursor.rowcount
+    
+    
