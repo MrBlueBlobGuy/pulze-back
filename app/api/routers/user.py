@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from chats.users import add_user
+# from chats.chatprocessor import XMPPclient, login_xmpp
 
 
 router = APIRouter()
@@ -28,6 +29,6 @@ async def login_user(user: User):
     return {
         "username":user.name,
         "status":200
-    } if add_user(user.name, user.password) else {
+    } if add_user(user=user.name, passw=user.password) else {
         "status":400
     }

@@ -1,45 +1,66 @@
+import sqlite3 as sql
 import os
+import logging
 from dotenv import load_dotenv
 
 load_dotenv()
 
-import mysql.connector as mysql
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
-class dbmanager:
-    def __init__(self) -> None:
-        self.connector = mysql.connect(
-            host = os.getenv('DB_HOST'),
-            user = os.getenv('DB_USER'),
-            password = os.getenv('DB_PASSWORD'),
-            database =  os.getenv('DB_NAME')
-        )
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-        self.cursor = self.connector.cursor()
-        
-    def __del__(self) -> None:
-        self.cursor.close()
-        self.connector.close()
+logger.addHandler(logging.StreamHandler())
 
-    def query(self, qstring:str, qdata:tuple=()):
-        self.cursor.execute(qstring, qdata)
-        return self.cursor.fetchall()
-    
-    def insert(self, qstring:str, qdata:tuple=()):
-        self.cursor.execute(qstring, qdata)
-        self.connector.commit()
-        return self.cursor.lastrowid
+class DB:
+    def __init__(self):
+        self.conn = sql.connect(os.getenv("DB_PATH"))
+        self.cursor = self.conn.cursor()
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS users (name TEXT, phonenumber TEXT, password TEXT)")
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS messages (senderid TEXT, receiverid TEXT, message TEXT, status TEXT, timestamp INTEGER, messageid TEXT)")
+        self.conn.commit()
 
-    def validate_exists(self, object, field):
-        self.cursor.execute('SELECT * FROM {} WHERE {} = %s'.format(object, field), (field,))
-        return self.cursor.fetchone() is not None
-    
-    def create_entry_hash(self, field, object):
-        self.cursor.execute('SELECT * FROM {} WHERE {} = %s'.format(object, field), (field,))
-        return self.cursor.fetchone()
-    
-    def update(self, qstring:str, qdata:tuple=()):
-        self.cursor.execute(qstring, qdata)
-        self.connector.commit()
-        return self.cursor.rowcount
-    
-    
+    def add_user(self, name, phonenumber, password):
+        try:
+            self.cursor.execute("INSERT INTO users (name, phonenumber, password) VALUES (?, ?, ?)", (name, phonenumber, password))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            logger.error(e)
+            return False
+
+    def get_user(self, name, password):
+        try:
+            self.cursor.execute("SELECT * FROM users WHERE name=? AND password=?", (name, password))
+            user = self.cursor.fetchone()
+            return user
+        except Exception as e:
+            logger.error(e)
+            return None
+
+    def add_message(self, senderid, receiverid, message, status, timestamp, messageid):
+        try:
+            self.cursor.execute("INSERT INTO messages (senderid, receiverid, message, status, timestamp, messageid) VALUES (?, ?, ?, ?, ?, ?)", (senderid, receiverid, message, status, timestamp, messageid))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            logger.error(e)
+            return False
+
+    def get_messages(self, senderid, receiverid):
+        try:
+            self.cursor.execute("SELECT * FROM messages WHERE senderid=? AND receiverid=?", (senderid, receiverid))
+            messages = self.cursor.fetchall()
+            return messages
+        except Exception as e:
+            logger.error(e)
+            return None
+
+    def get_all_messages(self):
+        try:
+            self.cursor.execute("SELECT * FROM messages")
+            messages = self.cursor.fetchall()
+            return messages
+        except Exception as e:
+            logger.error(e)
+            return None
